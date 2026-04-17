@@ -1,0 +1,14 @@
+# Dataset (too large for git)
+dataset/
+dataset.zip
+
+# Trained model weights (too large for git)
+*.pth
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
