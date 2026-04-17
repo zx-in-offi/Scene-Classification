@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Classify scenes into beach, forest, office, or street using deep learning models ResNet50 and EfficientNet-B0.">
+    <title>Scene Classifier — AI-Powered Scene Recognition</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header__icon">🏔️</div>
+        <h1 class="header__title">Scene Classifier</h1>
+        <p class="header__subtitle">Upload an image and let AI recognize the scene</p>
+    </header>
+
+    <!-- Model Selector -->
+    <div class="card" id="model-card">
+        <div class="card__title">Choose Model</div>
+        <div class="model-selector">
+            <button class="model-btn active" data-model="efficientnet" id="btn-efficientnet" onclick="selectModel('efficientnet')">
+                ⚡ EfficientNet-B0
+                <span class="model-btn__label">Fast &amp; lightweight (15 MB)</span>
+            </button>
+            <button class="model-btn" data-model="resnet50" id="btn-resnet50" onclick="selectModel('resnet50')">
+                🧠 ResNet50
+                <span class="model-btn__label">Deep &amp; powerful (90 MB)</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Upload Zone -->
+    <div class="card" id="upload-card">
+        <div class="card__title">Upload Image</div>
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+            <div class="upload-zone__icon">📷</div>
+            <p class="upload-zone__text">Drag &amp; drop an image here, or click to browse</p>
+            <p class="upload-zone__hint">Supports JPG, PNG, WEBP</p>
+            <input type="file" id="file-input" accept="image/*">
+        </div>
+
+        <!-- Image Preview -->
+        <div class="preview-container" id="preview-container">
+            <img id="preview-image" class="preview-image" alt="Uploaded image preview">
+            <p class="preview-filename" id="preview-filename"></p>
+        </div>
+
+        <!-- Classify Button -->
+        <button class="classify-btn" id="classify-btn" onclick="classifyImage()">
+            🔍 Classify Scene
+        </button>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="spinner" id="spinner">
+        <div>
+            <span class="spinner__dot"></span>
+            <span class="spinner__dot"></span>
+            <span class="spinner__dot"></span>
+        </div>
+        <p class="spinner__text">Analyzing scene...</p>
+    </div>
+
+    <!-- Results -->
+    <div class="card results" id="results">
+        <div class="result-header">
+            <div class="result-header__prediction" id="result-prediction"></div>
+            <div class="result-header__confidence" id="result-confidence"></div>
+            <div class="result-header__model" id="result-model"></div>
+        </div>
+
+        <div id="score-bars"></div>
+
+        <button class="reset-btn" onclick="resetApp()">↩ Try Another Image</button>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        Built with PyTorch &amp; Flask · Models: ResNet50 &amp; EfficientNet-B0
+        <br>
+        <a href="https://github.com/zx-in-offi/Scene-Classification" target="_blank">View on GitHub</a>
+    </footer>
+
+</div>
+
+<script>
+    // ─── State ──────────────────────────────────────────────────────────────
+    let selectedModel = 'efficientnet';
+    let selectedFile = null;
+
+    const CLASS_ICONS = {
+        beach: '🏖️',
+        forest: '🌲',
+        office: '🏢',
+        street: '🏙️',
+    };
+
+    // ─── Model Selection ────────────────────────────────────────────────────
+    function selectModel(model) {
+        selectedModel = model;
+        document.querySelectorAll('.model-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.model === model);
+        });
+    }
+
+    // ─── Drag & Drop ────────────────────────────────────────────────────────
+    const uploadZone = document.getElementById('upload-zone');
+    const fileInput = document.getElementById('file-input');
+
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) {
+            handleFile(e.dataTransfer.files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+            handleFile(fileInput.files[0]);
+        }
+    });
+
+    // ─── File Handling ──────────────────────────────────────────────────────
+    function handleFile(file) {
+        if (!file.type.startsWith('image/')) {
+            alert('Please upload an image file.');
+            return;
+        }
+
+        selectedFile = file;
+
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById('preview-image').src = e.target.result;
+            document.getElementById('preview-filename').textContent = file.name;
+            document.getElementById('preview-container').classList.add('visible');
+            document.getElementById('classify-btn').classList.add('visible');
+        };
+        reader.readAsDataURL(file);
+
+        // Hide previous results
+        document.getElementById('results').classList.remove('visible');
+    }
+
+    // ─── Classification ─────────────────────────────────────────────────────
+    async function classifyImage() {
+        if (!selectedFile) return;
+
+        const btn = document.getElementById('classify-btn');
+        const spinner = document.getElementById('spinner');
+        const results = document.getElementById('results');
+
+        // Show loading
+        btn.disabled = true;
+        btn.textContent = '⏳ Classifying...';
+        spinner.classList.add('visible');
+        results.classList.remove('visible');
+
+        try {
+            const formData = new FormData();
+            formData.append('image', selectedFile);
+            formData.append('model', selectedModel);
+
+            const response = await fetch('/predict', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                alert('Error: ' + data.error);
+                return;
+            }
+
+            // Display results
+            displayResults(data);
+
+        } catch (error) {
+            alert('Failed to classify. Make sure the server is running.');
+            console.error(error);
+        } finally {
+            spinner.classList.remove('visible');
+            btn.disabled = false;
+            btn.textContent = '🔍 Classify Scene';
+        }
+    }
+
+    // ─── Display Results ────────────────────────────────────────────────────
+    function displayResults(data) {
+        const icon = CLASS_ICONS[data.prediction] || '🔍';
+
+        document.getElementById('result-prediction').textContent =
+            `${icon} ${data.prediction}`;
+        document.getElementById('result-confidence').textContent =
+            `${data.confidence}% confidence`;
+        document.getElementById('result-model').textContent =
+            `Model: ${data.model_used}`;
+
+        // Build score bars
+        const barsContainer = document.getElementById('score-bars');
+        barsContainer.innerHTML = '';
+
+        data.all_scores.forEach((score, index) => {
+            const isTop = index === 0;
+            const classIcon = CLASS_ICONS[score.class] || '';
+
+            const bar = document.createElement('div');
+            bar.className = `score-bar ${isTop ? 'top-result' : ''}`;
+            bar.dataset.class = score.class;
+            bar.innerHTML = `
+                <div class="score-bar__header">
+                    <span class="score-bar__label">
+                        <span class="class-icon">${classIcon}</span>${score.class}
+                    </span>
+                    <span class="score-bar__value">${score.confidence}%</span>
+                </div>
+                <div class="score-bar__track">
+                    <div class="score-bar__fill"></div>
+                </div>
+            `;
+            barsContainer.appendChild(bar);
+
+            // Animate fill after a small delay
+            setTimeout(() => {
+                bar.querySelector('.score-bar__fill').style.width = `${score.confidence}%`;
+            }, 100 + index * 150);
+        });
+
+        document.getElementById('results').classList.add('visible');
+    }
+
+    // ─── Reset ──────────────────────────────────────────────────────────────
+    function resetApp() {
+        selectedFile = null;
+        fileInput.value = '';
+        document.getElementById('preview-container').classList.remove('visible');
+        document.getElementById('classify-btn').classList.remove('visible');
+        document.getElementById('results').classList.remove('visible');
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,539 @@
+/* ─── CSS Variables & Reset ───────────────────────────────────────────────── */
+:root {
+    --bg-primary: #0a0a1a;
+    --bg-secondary: #12122a;
+    --bg-card: rgba(255, 255, 255, 0.04);
+    --bg-card-hover: rgba(255, 255, 255, 0.07);
+    --border-glass: rgba(255, 255, 255, 0.08);
+    --text-primary: #e8e8f0;
+    --text-secondary: #8888aa;
+    --text-muted: #555570;
+    --accent-blue: #4f7df5;
+    --accent-green: #34d399;
+    --accent-purple: #a855f7;
+    --accent-amber: #f59e0b;
+    --accent-rose: #f43f5e;
+    --gradient-primary: linear-gradient(135deg, #4f7df5, #a855f7);
+    --gradient-card: linear-gradient(135deg, rgba(79, 125, 245, 0.08), rgba(168, 85, 247, 0.08));
+    --shadow-glow: 0 0 40px rgba(79, 125, 245, 0.15);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* ─── Background Orbs ────────────────────────────────────────────────────── */
+body::before,
+body::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.3;
+    z-index: -1;
+    animation: float 20s ease-in-out infinite;
+}
+
+body::before {
+    width: 500px;
+    height: 500px;
+    background: var(--accent-blue);
+    top: -100px;
+    left: -100px;
+}
+
+body::after {
+    width: 400px;
+    height: 400px;
+    background: var(--accent-purple);
+    bottom: -100px;
+    right: -100px;
+    animation-delay: -10s;
+}
+
+@keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -30px) scale(1.05); }
+    66% { transform: translate(-20px, 20px) scale(0.95); }
+}
+
+/* ─── Layout ─────────────────────────────────────────────────────────────── */
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+/* ─── Header ─────────────────────────────────────────────────────────────── */
+.header {
+    text-align: center;
+    margin-bottom: 40px;
+    animation: fadeInDown 0.8s ease-out;
+}
+
+.header__icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    display: inline-block;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.header__title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+}
+
+.header__subtitle {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+
+/* ─── Glass Card ─────────────────────────────────────────────────────────── */
+.card {
+    background: var(--bg-card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 24px;
+    transition: var(--transition);
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.card:hover {
+    background: var(--bg-card-hover);
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: var(--shadow-glow);
+}
+
+.card__title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    font-weight: 600;
+}
+
+/* ─── Model Selector ─────────────────────────────────────────────────────── */
+.model-selector {
+    display: flex;
+    gap: 12px;
+}
+
+.model-btn {
+    flex: 1;
+    padding: 14px 20px;
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.model-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gradient-primary);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+}
+
+.model-btn:hover {
+    border-color: rgba(79, 125, 245, 0.3);
+    color: var(--text-primary);
+}
+
+.model-btn.active {
+    border-color: var(--accent-blue);
+    color: #fff;
+    font-weight: 600;
+}
+
+.model-btn.active::before {
+    opacity: 0.2;
+}
+
+.model-btn__label {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-weight: 400;
+}
+
+.model-btn.active .model-btn__label {
+    color: var(--text-secondary);
+}
+
+/* ─── Upload Zone ────────────────────────────────────────────────────────── */
+.upload-zone {
+    border: 2px dashed var(--border-glass);
+    border-radius: var(--radius);
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+}
+
+.upload-zone:hover,
+.upload-zone.dragover {
+    border-color: var(--accent-blue);
+    background: rgba(79, 125, 245, 0.05);
+}
+
+.upload-zone.dragover {
+    transform: scale(1.02);
+}
+
+.upload-zone__icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.6;
+}
+
+.upload-zone__text {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.upload-zone__hint {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.upload-zone input[type="file"] {
+    display: none;
+}
+
+/* ─── Image Preview ──────────────────────────────────────────────────────── */
+.preview-container {
+    display: none;
+    margin-top: 20px;
+    text-align: center;
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.preview-container.visible {
+    display: block;
+}
+
+.preview-image {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-glass);
+    object-fit: contain;
+    margin-bottom: 16px;
+}
+
+.preview-filename {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+}
+
+/* ─── Classify Button ────────────────────────────────────────────────────── */
+.classify-btn {
+    display: none;
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--gradient-primary);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+}
+
+.classify-btn.visible {
+    display: block;
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.classify-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(79, 125, 245, 0.3);
+}
+
+.classify-btn:active {
+    transform: translateY(0);
+}
+
+.classify-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ─── Loading Spinner ────────────────────────────────────────────────────── */
+.spinner {
+    display: none;
+    text-align: center;
+    padding: 24px;
+}
+
+.spinner.visible {
+    display: block;
+}
+
+.spinner__dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent-blue);
+    margin: 0 4px;
+    animation: bounce 1.4s ease-in-out infinite;
+}
+
+.spinner__dot:nth-child(2) {
+    animation-delay: 0.16s;
+    background: var(--accent-purple);
+}
+
+.spinner__dot:nth-child(3) {
+    animation-delay: 0.32s;
+    background: var(--accent-green);
+}
+
+@keyframes bounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+}
+
+.spinner__text {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-top: 12px;
+}
+
+/* ─── Results ────────────────────────────────────────────────────────────── */
+.results {
+    display: none;
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.results.visible {
+    display: block;
+}
+
+.result-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.result-header__prediction {
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-transform: capitalize;
+    margin-bottom: 4px;
+}
+
+.result-header__model {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.result-header__confidence {
+    font-size: 1rem;
+    color: var(--accent-green);
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+/* ─── Score Bars ─────────────────────────────────────────────────────────── */
+.score-bar {
+    margin-bottom: 14px;
+}
+
+.score-bar__header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.score-bar__label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-transform: capitalize;
+    color: var(--text-primary);
+}
+
+.score-bar__value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.score-bar__track {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.score-bar__fill {
+    height: 100%;
+    border-radius: 4px;
+    width: 0%;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.score-bar[data-class="beach"] .score-bar__fill {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.score-bar[data-class="forest"] .score-bar__fill {
+    background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.score-bar[data-class="office"] .score-bar__fill {
+    background: linear-gradient(90deg, #4f7df5, #60a5fa);
+}
+
+.score-bar[data-class="street"] .score-bar__fill {
+    background: linear-gradient(90deg, #a855f7, #c084fc);
+}
+
+.score-bar.top-result .score-bar__label {
+    color: var(--accent-green);
+}
+
+.score-bar.top-result .score-bar__value {
+    color: var(--accent-green);
+}
+
+/* ─── Emoji Icon for classes ─────────────────────────────────────────────── */
+.class-icon {
+    margin-right: 6px;
+}
+
+/* ─── Reset Button ───────────────────────────────────────────────────────── */
+.reset-btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    margin-top: 20px;
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.reset-btn:hover {
+    border-color: var(--accent-rose);
+    color: var(--accent-rose);
+    background: rgba(244, 63, 94, 0.05);
+}
+
+/* ─── Footer ─────────────────────────────────────────────────────────────── */
+.footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 20px;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.footer a {
+    color: var(--accent-blue);
+    text-decoration: none;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+/* ─── Animations ─────────────────────────────────────────────────────────── */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+    .container {
+        padding: 24px 16px;
+    }
+
+    .header__title {
+        font-size: 1.6rem;
+    }
+
+    .model-selector {
+        flex-direction: column;
+    }
+
+    .upload-zone {
+        padding: 32px 16px;
+    }
+
+    .result-header__prediction {
+        font-size: 1.4rem;
+    }
+}
