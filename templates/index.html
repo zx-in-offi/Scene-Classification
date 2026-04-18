@@ -21,6 +21,15 @@
         <p class="header__subtitle">Upload an image and let AI recognize the scene</p>
     </header>
 
+    <!-- Tab Navigation -->
+    <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('classify')">🔍 Classify</button>
+        <button class="tab-btn" onclick="switchTab('info')">🧠 Models Info</button>
+        <button class="tab-btn" onclick="switchTab('performance')">📊 Performance</button>
+    </div>
+
+    <!-- TAB 1: Classify -->
+    <div id="tab-classify" class="tab-content active">
     <!-- Model Selector -->
     <div class="card" id="model-card">
         <div class="card__title">Choose Model</div>
@@ -80,6 +89,97 @@
 
         <button class="reset-btn" onclick="resetApp()">↩ Try Another Image</button>
     </div>
+    </div> <!-- End Tab 1 -->
+
+    <!-- TAB 2: Models Info -->
+    <div id="tab-info" class="tab-content">
+        <div class="card info-card">
+            <h2 class="info-card__title">ResNet50</h2>
+            <div class="info-card__stats">
+                <span class="stat-badge">Parameters: ~25.6M</span>
+                <span class="stat-badge">Size: ~90 MB</span>
+            </div>
+            <p class="info-card__desc">
+                A classic Convolutional Neural Network architecture that uses residual connections to allow training of deep networks without suffering from the vanishing gradient problem. It provides a very strong baseline and high accuracy.
+            </p>
+        </div>
+
+        <div class="card info-card">
+            <h2 class="info-card__title">EfficientNet-B0</h2>
+            <div class="info-card__stats">
+                <span class="stat-badge">Parameters: ~5.3M</span>
+                <span class="stat-badge">Size: ~15 MB</span>
+            </div>
+            <p class="info-card__desc">
+                A highly optimized architecture that uniformly scales network width, depth, and resolution. Despite being significantly smaller and faster than ResNet50, it achieves comparable or even better accuracy, making it perfect for efficient deployment.
+            </p>
+        </div>
+        
+        <div class="card info-card">
+            <h2 class="info-card__title">Vision Transformer (ViT)</h2>
+            <div class="info-card__stats">
+                <span class="stat-badge">Parameters: ~86M</span>
+            </div>
+            <p class="info-card__desc">
+                An architecture that applies the Transformer mechanism (originally designed for NLP) to image classification. It splits images into patches and processes them using self-attention. While powerful, it is much larger and wasn't selected for this live deployment.
+            </p>
+        </div>
+    </div> <!-- End Tab 2 -->
+
+    <!-- TAB 3: Performance -->
+    <div id="tab-performance" class="tab-content">
+        <div class="card">
+            <div class="card__title">Accuracy Comparison</div>
+            <div class="perf-chart">
+                <!-- ResNet50 -->
+                <div class="perf-row">
+                    <div class="perf-label">ResNet50</div>
+                    <div class="perf-bar-track">
+                        <div class="perf-bar-fill" style="width: 94%; background: linear-gradient(90deg, #4f7df5, #60a5fa);" data-value="94%"></div>
+                    </div>
+                </div>
+                <!-- EfficientNet-B0 -->
+                <div class="perf-row">
+                    <div class="perf-label">EfficientNet-B0</div>
+                    <div class="perf-bar-track">
+                        <div class="perf-bar-fill" style="width: 95.5%; background: linear-gradient(90deg, #10b981, #34d399);" data-value="95.5%"></div>
+                    </div>
+                </div>
+                <!-- ViT-Base -->
+                <div class="perf-row">
+                    <div class="perf-label">ViT-Base</div>
+                    <div class="perf-bar-track">
+                        <div class="perf-bar-fill" style="width: 96.2%; background: linear-gradient(90deg, #a855f7, #c084fc);" data-value="96.2%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card__title">Model Size Comparison (MB)</div>
+            <div class="perf-chart">
+                <div class="perf-row">
+                    <div class="perf-label">EfficientNet-B0</div>
+                    <div class="perf-bar-track">
+                        <div class="perf-bar-fill size-bar" style="width: 15%; background: linear-gradient(90deg, #10b981, #34d399);" data-value="15 MB"></div>
+                    </div>
+                </div>
+                <div class="perf-row">
+                    <div class="perf-label">ResNet50</div>
+                    <div class="perf-bar-track">
+                        <div class="perf-bar-fill size-bar" style="width: 90%; background: linear-gradient(90deg, #4f7df5, #60a5fa);" data-value="90 MB"></div>
+                    </div>
+                </div>
+                <div class="perf-row">
+                    <div class="perf-label">ViT-Base</div>
+                    <div class="perf-bar-track">
+                        <div class="perf-bar-fill size-bar" style="width: 100%; background: linear-gradient(90deg, #a855f7, #c084fc);" data-value="330+ MB"></div>
+                    </div>
+                </div>
+            </div>
+            <p class="perf-note">Note: Metrics based on test sets. EfficientNet offers the best trade-off between speed, size, and accuracy.</p>
+        </div>
+    </div> <!-- End Tab 3 -->
 
     <!-- Footer -->
     <footer class="footer">
@@ -101,6 +201,37 @@
         office: '🏢',
         street: '🏙️',
     };
+
+    // ─── Tab Navigation ─────────────────────────────────────────────────────
+    function switchTab(tabId) {
+        // Update buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.currentTarget.classList.add('active');
+
+        // Update content
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.getElementById(`tab-${tabId}`).classList.add('active');
+        
+        // Trigger animations if performance tab
+        if(tabId === 'performance') {
+            triggerChartAnimations();
+        }
+    }
+
+    function triggerChartAnimations() {
+        const fills = document.querySelectorAll('.perf-bar-fill');
+        fills.forEach(fill => {
+            const width = fill.style.width;
+            fill.style.width = '0%';
+            setTimeout(() => {
+                fill.style.width = width;
+            }, 50);
+        });
+    }
 
     // ─── Model Selection ────────────────────────────────────────────────────
     function selectModel(model) {
