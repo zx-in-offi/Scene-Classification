@@ -13,6 +13,7 @@ from flask import Flask, render_template, request, jsonify
 import timm
 import io
 import base64
+import gdown
 
 app = Flask(__name__)
 
@@ -35,12 +36,23 @@ transform = transforms.Compose([
 # ─── Model Loading ───────────────────────────────────────────────────────────
 models = {}
 
+def download_if_not_exists(weight_path, file_id):
+    """Download the model weights from Google Drive if not present."""
+    if not os.path.exists(weight_path):
+        print(f"Downloading {os.path.basename(weight_path)} from Google Drive...")
+        url = f'https://drive.google.com/uc?id={file_id}'
+        gdown.download(url, weight_path, quiet=False)
+
 
 def load_resnet50():
     """Load ResNet50 model with trained weights."""
     model = resnet50(weights=None)
     model.fc = nn.Linear(model.fc.in_features, NUM_CLASSES)
     weight_path = os.path.join(os.path.dirname(__file__), "resnet50_scene_model.pth")
+    
+    # Download from GDrive if missing
+    download_if_not_exists(weight_path, "1quGlFqo1Ig8XFSEFvBWgQUl5HIDiioOS")
+    
     model.load_state_dict(torch.load(weight_path, map_location=DEVICE, weights_only=True))
     model.to(DEVICE)
     model.eval()
@@ -51,6 +63,10 @@ def load_efficientnet():
     """Load EfficientNet-B0 model with trained weights."""
     model = timm.create_model("efficientnet_b0", pretrained=False, num_classes=NUM_CLASSES)
     weight_path = os.path.join(os.path.dirname(__file__), "efficientnet_b0_scene_model.pth")
+    
+    # Download from GDrive if missing
+    download_if_not_exists(weight_path, "14eqb6xq0PY6nJyFurpEW5Zm2JzpdKWWu")
+    
     model.load_state_dict(torch.load(weight_path, map_location=DEVICE, weights_only=True))
     model.to(DEVICE)
     model.eval()
