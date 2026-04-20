@@ -45,14 +45,33 @@
         </div>
     </div>
 
-    <!-- Upload Zone -->
+    <!-- Input Source -->
     <div class="card" id="upload-card">
-        <div class="card__title">Upload Image</div>
+        <div class="card__title">Input Source</div>
+
+        <!-- Mode Toggle -->
+        <div class="input-mode-toggle">
+            <button class="mode-btn active" id="mode-upload" onclick="setMode('upload')">📁 Upload File</button>
+            <button class="mode-btn" id="mode-camera" onclick="setMode('camera')">📷 Camera</button>
+        </div>
+
+        <!-- Upload Zone -->
         <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
-            <div class="upload-zone__icon">📷</div>
+            <div class="upload-zone__icon">🖼️</div>
             <p class="upload-zone__text">Drag &amp; drop an image here, or click to browse</p>
             <p class="upload-zone__hint">Supports JPG, PNG, WEBP</p>
             <input type="file" id="file-input" accept="image/*">
+        </div>
+
+        <!-- Camera Zone -->
+        <div class="camera-zone" id="camera-zone" style="display: none;">
+            <div class="camera-container">
+                <video id="webcam" autoplay playsinline></video>
+                <canvas id="canvas" style="display: none;"></canvas>
+            </div>
+            <div class="camera-controls">
+                <button class="camera-btn capture-btn" onclick="captureAndPredict()">📸 Capture & Predict</button>
+            </div>
         </div>
 
         <!-- Image Preview -->
@@ -194,6 +213,7 @@
     // ─── State ──────────────────────────────────────────────────────────────
     let selectedModel = 'efficientnet';
     let selectedFile = null;
+    let cameraStream = null;
 
     const CLASS_ICONS = {
         beach: '🏖️',
@@ -201,6 +221,68 @@
         office: '🏢',
         street: '🏙️',
     };
+
+    // ─── Input Mode ─────────────────────────────────────────────────────────
+    function setMode(mode) {
+        document.getElementById('mode-upload').classList.toggle('active', mode === 'upload');
+        document.getElementById('mode-camera').classList.toggle('active', mode === 'camera');
+
+        document.getElementById('upload-zone').style.display = mode === 'upload' ? 'block' : 'none';
+        document.getElementById('camera-zone').style.display = mode === 'camera' ? 'block' : 'none';
+        
+        document.getElementById('preview-container').classList.remove('visible');
+        document.getElementById('classify-btn').classList.remove('visible');
+        document.getElementById('results').classList.remove('visible');
+        selectedFile = null;
+
+        if (mode === 'camera') {
+            startCamera();
+        } else {
+            stopCamera();
+        }
+    }
+
+    // ─── Camera Handling ────────────────────────────────────────────────────
+    async function startCamera() {
+        const video = document.getElementById('webcam');
+        try {
+            cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            video.srcObject = cameraStream;
+        } catch (err) {
+            alert("Could not access the camera. Please ensure permissions are granted and you are using HTTPS or localhost.");
+            console.error(err);
+            setMode('upload');
+        }
+    }
+
+    function stopCamera() {
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(track => track.stop());
+            cameraStream = null;
+        }
+    }
+
+    function captureAndPredict() {
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('canvas');
+        if (!cameraStream) return;
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob((blob) => {
+            const file = new File([blob], "camera_capture.jpg", { type: "image/jpeg" });
+            setMode('upload');
+            handleFile(file);
+            
+            setTimeout(() => {
+                classifyImage();
+            }, 150);
+        }, 'image/jpeg', 0.9);
+    }
 
     // ─── Tab Navigation ─────────────────────────────────────────────────────
     function switchTab(tabId) {
